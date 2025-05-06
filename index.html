@@ -3,48 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mappa Fonti Idriche Basilicata</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+    <title>Tabella Fonti Idriche Basilicata</title>
     <style>
-        #mapid { height: 500px; }
-        #resource-list {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: white;
-            padding: 10px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
             border: 1px solid #ccc;
-            z-index: 1000;
-            max-height: 400px;
-            overflow-y: auto;
+            padding: 8px;
+            text-align: left;
         }
-        #resources {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-        #resources li {
-            padding: 5px 0;
-            cursor: pointer;
-        }
-        #resources li:hover {
+        th {
             background-color: #f0f0f0;
+        }
+        .coordinate {
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div id="mapid"></div>
-    <div id="resource-list">
-        <h2>Elenco Fonti Idriche</h2>
-        <ul id="resources">
-        </ul>
-    </div>
+    <h1>Elenco Fonti Idriche Basilicata</h1>
+    <div id="data-table-container">
+        </div>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Coordinate copiate negli appunti: ' + text);
+            }).catch(err) {
+                console.error('Impossibile copiare negli appunti: ', err);
+            }
+        }
+
+        function openStreetMapSearch(lat, lon) {
+            window.open(`https://www.openstreetmap.org/#map=17/${lat}/${lon}`, '_blank');
+        }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
