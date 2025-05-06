@@ -1,0 +1,30 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+}
+
+#mapid {
+    width: 70%;
+    height: 600px;
+}
+
+#resource-list {
+    width: 30%;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+#resources {
+    list-style-type: none;
+    padding: 0;
+}
+
+#resources li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+#resources li:last-child {
+    border-bottom: none;
+}
