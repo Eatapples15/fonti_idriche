@@ -7,23 +7,27 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 var resourceList = document.getElementById('resources');
 var geojsonLayer;
 
-fetch('https://drive.google.com/uc?export=download&id=1rWB_rjKvX_WHOenlagrxVBQf-aVFqLq1')
+fetch('https://fonti-idriche-basilicata-web-data.s3.us-west-2.amazonaws.com/fonti_idriche_basilicata_scale100_v3.geojson')
     .then(response => response.json())
     .then(data => {
+        console.log("Dati GeoJSON scaricati:", data); // Vedi la struttura principale dei dati
         geojsonLayer = L.geoJSON(data, {
             style: function (feature) {
                 return {color: "blue", fillColor: "lightblue", weight: 1, opacity: 1, fillOpacity: 0.7};
             },
             onEachFeature: function (feature, layer) {
+                console.log("Feature corrente:", feature); // Vedi ogni singola feature
                 var listItem = document.createElement('li');
                 listItem.textContent = "Fonte Idrica (Area: " + feature.properties.area_hectares.toFixed(2) + " ha)";
                 listItem.addEventListener('click', function() {
-                    map.flyTo(layer.getBounds().getCenter(), 12); // Zoom sulla fonte cliccata
+                    map.flyTo(layer.getBounds().getCenter(), 12);
                     layer.openPopup();
                 });
 
                 if (feature.properties && feature.properties.area_hectares) {
                     layer.bindPopup("Area: " + feature.properties.area_hectares.toFixed(2) + " ettari");
+                } else {
+                    console.warn("La feature non ha la proprietà 'area_hectares':", feature); // Avvisa se manca la proprietà
                 }
                 resourceList.appendChild(listItem);
             }
