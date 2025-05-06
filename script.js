@@ -7,7 +7,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 var resourceList = document.getElementById('resources');
 var geojsonLayer;
 
-fetch('./fonti_idriche_basilicata_scale100.geojson') // Assicurati che il percorso sia corretto
+fetch('https://drive.google.com/uc?export=download&id=1rWB_rjKvX_WHOenlagrxVBQf-aVFqLq1')
     .then(response => response.json())
     .then(data => {
         geojsonLayer = L.geoJSON(data, {
@@ -28,4 +28,7 @@ fetch('./fonti_idriche_basilicata_scale100.geojson') // Assicurati che il percor
                 resourceList.appendChild(listItem);
             }
         }).addTo(map);
+    })
+    .catch(error => {
+        console.error("Errore nel caricamento del GeoJSON:", error);
     });
