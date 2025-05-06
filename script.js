@@ -7,7 +7,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 var resourceList = document.getElementById('resources');
 var geojsonLayer;
 
-fetch('./data/fonti_idriche.geojson') // Assicurati che il percorso sia corretto
+fetch('./fonti_idriche_basilicata_scale100.geojson') // Assicurati che il percorso sia corretto
     .then(response => response.json())
     .then(data => {
         geojsonLayer = L.geoJSON(data, {
