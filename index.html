@@ -11,14 +11,75 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+    <style>
+        #mapid { height: 500px; }
+        #resource-list {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #resources {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #resources li {
+            padding: 5px 0;
+            cursor: pointer;
+        }
+        #resources li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
     <div id="mapid"></div>
     <div id="resource-list">
         <h2>Elenco Fonti Idriche</h2>
         <ul id="resources">
-            </ul>
+        </ul>
     </div>
-    <script src="script.js"></script>
+    <script>
+        var map = L.map('mapid').setView([40.33, 16.67], 7);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var resourceList = document.getElementById('resources');
+        var geojsonLayer;
+
+        fetch('https://fonti-idriche-basilicata-web-data.s3.us-west-2.amazonaws.com/fonti_idriche_basilicata_scale100_v3.geojson')
+            .then(response => response.json())
+            .then(data => {
+                geojsonLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {color: "blue", fillColor: "lightblue", weight: 1, opacity: 1, fillOpacity: 0.7};
+                    },
+                    onEachFeature: function (feature, layer) {
+                        var listItem = document.createElement('li');
+                        listItem.textContent = "Fonte Idrica (Area: " + feature.properties.area_hectares.toFixed(2) + " ha)";
+                        listItem.addEventListener('click', function() {
+                            map.flyTo(layer.getBounds().getCenter(), 12); // Zoom sulla fonte cliccata
+                            layer.openPopup();
+                        });
+
+                        if (feature.properties && feature.properties.area_hectares) {
+                            layer.bindPopup("Area: " + feature.properties.area_hectares.toFixed(2) + " ettari");
+                        }
+                        resourceList.appendChild(listItem);
+                    }
+                }).addTo(map);
+            })
+            .catch(error => {
+                console.error("Errore nel caricamento del GeoJSON:", error);
+            });
+    </script>
 </body>
 </html>
