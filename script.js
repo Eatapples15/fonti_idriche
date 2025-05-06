@@ -1,57 +1,38 @@
-var map = L.map('mapid').setView([40.33, 16.67], 7);
+const dataTableContainer = document.getElementById('data-table-container');
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-}).addTo(map);
-
-var resourceList = document.getElementById('resources');
-
-fetch('https://fonti-idriche-basilicata-web-data.s3.us-west-2.amazonaws.com/fonti_idriche_basilicata_scale100_v3.csv') // Sostituisci con l'URL del tuo file CSV
+fetch('https://fonti-idriche-basilicata-web-data.s3.us-west-2.amazonaws.com/fonti_idriche_basilicata_scale100_v3.csv')
     .then(response => response.text())
     .then(csvData => {
-        console.log("Dati CSV scaricati:", csvData); // Mostra i dati CSV grezzi
         const lines = csvData.split('\n').map(line => line.trim());
         const header = lines[0].split(',');
         const dataRows = lines.slice(1);
 
+        let tableHTML = '<table><thead><tr>';
+        header.forEach(col => {
+            tableHTML += `<th>${col}</th>`;
+        });
+        tableHTML += '</tr></thead><tbody>';
+
         dataRows.forEach(row => {
             const values = row.split(',');
             if (values.length === header.length) {
-                const record = {};
+                tableHTML += '<tr>';
                 header.forEach((col, index) => {
-                    record[col] = values[index];
+                    let cellValue = values[index];
+                    if (col.toLowerCase() === 'latitudine' && values[header.indexOf('Longitudine')]) {
+                        const lat = values[index];
+                        const lon = values[header.indexOf('Longitudine')];
+                        cellValue = `<span class="coordinate" onclick="copyToClipboard('${lat}, ${lon}')" title="Clicca per copiare le coordinate">${lat}, ${lon}</span> <button onclick="openStreetMapSearch('${lat}', '${lon}')">Cerca su OSM</button>`;
+                    }
+                    tableHTML += `<td>${cellValue}</td>`;
                 });
-
-                const lat = parseFloat(record.Latitudine);
-                const lon = parseFloat(record.Longitudine);
-                const areaHa = parseFloat(record.Area_ha);
-                 const nomeFonte = record.Nome || "Fonte Idrica";
-
-                if (!isNaN(lat) && !isNaN(lon)) {
-                    const marker = L.circleMarker([lat, lon], {
-                        radius: Math.sqrt(areaHa) * 5, // Esempio: raggio proporzionale alla radice dell'area
-                        color: 'blue',
-                        fillColor: 'lightblue',
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.7
-                    }).addTo(map);
-
-                    marker.bindPopup(`${nomeFonte}<br>Area: ${areaHa.toFixed(2)} ettari`);
-
-                    const listItem = document.createElement('li');
-                     listItem.textContent = `${nomeFonte} (Area: ${areaHa.toFixed(2)} ha)`;
-                    listItem.addEventListener('click', function() {
-                        map.flyTo([lat, lon], 12);
-                        marker.openPopup();
-                    });
-                    resourceList.appendChild(listItem);
-                } else {
-                    console.warn("Coordinate non valide trovate nel CSV:", record);
-                }
+                tableHTML += '</tr>';
             }
         });
-        console.log("Dati CSV caricati e visualizzati.");
+
+        tableHTML += '</tbody></table>';
+        dataTableContainer.innerHTML = tableHTML;
+        console.log("Tabella CSV creata e inserita.");
     })
     .catch(error => {
         console.error("Errore nel caricamento del file CSV:", error);
