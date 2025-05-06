@@ -5,34 +5,54 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 var resourceList = document.getElementById('resources');
-var geojsonLayer;
 
-fetch('https://fonti-idriche-basilicata-web-data.s3.us-west-2.amazonaws.com/fonti_idriche_basilicata_scale100_v3.geojson')
-    .then(response => response.json())
-    .then(data => {
-        console.log("Dati GeoJSON scaricati:", data); // Vedi la struttura principale dei dati
-        geojsonLayer = L.geoJSON(data, {
-            style: function (feature) {
-                return {color: "blue", fillColor: "lightblue", weight: 1, opacity: 1, fillOpacity: 0.7};
-            },
-            onEachFeature: function (feature, layer) {
-                console.log("Feature corrente:", feature); // Vedi ogni singola feature
-                var listItem = document.createElement('li');
-                listItem.textContent = "Fonte Idrica (Area: " + feature.properties.area_hectares.toFixed(2) + " ha)";
-                listItem.addEventListener('click', function() {
-                    map.flyTo(layer.getBounds().getCenter(), 12);
-                    layer.openPopup();
+fetch('https://fonti-idriche-basilicata-web-data.s3.us-west-2.amazonaws.com/fonti_idriche_basilicata_scale100_v3.csv') // Sostituisci con l'URL del tuo file CSV
+    .then(response => response.text())
+    .then(csvData => {
+        console.log("Dati CSV scaricati:", csvData); // Mostra i dati CSV grezzi
+        const lines = csvData.split('\n').map(line => line.trim());
+        const header = lines[0].split(',');
+        const dataRows = lines.slice(1);
+
+        dataRows.forEach(row => {
+            const values = row.split(',');
+            if (values.length === header.length) {
+                const record = {};
+                header.forEach((col, index) => {
+                    record[col] = values[index];
                 });
 
-                if (feature.properties && feature.properties.area_hectares) {
-                    layer.bindPopup("Area: " + feature.properties.area_hectares.toFixed(2) + " ettari");
+                const lat = parseFloat(record.Latitudine);
+                const lon = parseFloat(record.Longitudine);
+                const areaHa = parseFloat(record.Area_ha);
+                 const nomeFonte = record.Nome || "Fonte Idrica";
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    const marker = L.circleMarker([lat, lon], {
+                        radius: Math.sqrt(areaHa) * 5, // Esempio: raggio proporzionale alla radice dell'area
+                        color: 'blue',
+                        fillColor: 'lightblue',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.7
+                    }).addTo(map);
+
+                    marker.bindPopup(`${nomeFonte}<br>Area: ${areaHa.toFixed(2)} ettari`);
+
+                    const listItem = document.createElement('li');
+                     listItem.textContent = `${nomeFonte} (Area: ${areaHa.toFixed(2)} ha)`;
+                    listItem.addEventListener('click', function() {
+                        map.flyTo([lat, lon], 12);
+                        marker.openPopup();
+                    });
+                    resourceList.appendChild(listItem);
                 } else {
-                    console.warn("La feature non ha la proprietà 'area_hectares':", feature); // Avvisa se manca la proprietà
+                    console.warn("Coordinate non valide trovate nel CSV:", record);
                 }
-                resourceList.appendChild(listItem);
             }
-        }).addTo(map);
+        });
+        console.log("Dati CSV caricati e visualizzati.");
     })
     .catch(error => {
-        console.error("Errore nel caricamento del GeoJSON:", error);
+        console.error("Errore nel caricamento del file CSV:", error);
     });
